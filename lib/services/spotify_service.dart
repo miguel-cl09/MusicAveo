@@ -64,4 +64,34 @@ class SpotifyService {
     //Si la respuesta no es exitosa, se retorna null
     return null;
   }
+
+  //Paso 3: Método para consultar una pita por ID (compatible con Client Credentials Flow)
+  Future<SongModel?> getSampleTrack(String trackId) async {
+    //Si no hay token de acceso, se lanza una excepción
+    if (_accessToken == null) {
+      bool authSuccess = await authenticate();
+      if (!authSuccess) return null;
+    }
+
+    //
+    try {
+      final response = await http.get(
+        Uri.parse('https://api.spotify.com/v1/tracks/$trackId'),
+        headers: {
+          'Authorization': 'Bearer $_accessToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        return SongModel.fromJson({'item': data});
+      } else {
+        print('Error al obtener la pista: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Excepción al obtener la pista: $e');
+      return null;
+    }
+  }
 }
